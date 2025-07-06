@@ -1,0 +1,68 @@
+services:
+  blog-db:
+    image: mysql:latest
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: start-first
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - '-h'
+        - localhost
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - blog-db-vol:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    networks:
+      - blog-app-net
+  blog-server:
+    image: runipanda/blog-app:build-a082e39a9f8ef400e1be15bf49de51310ee6cd86
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: start-first
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '--no-verbose'
+        - '--tries=1'
+        - '--spider'
+        - http://localhost:3000/health
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '3001:3000'
+    environment:
+      - DB_HOST=blog-db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=blogdb
+      - NODE_HOST="{{.Node.Hostname}}"
+    depends_on:
+      - blog-db
+    networks:
+      - blog-app-net
+volumes:
+  blog-db-vol: null
+networks:
+  blog-app-net: null

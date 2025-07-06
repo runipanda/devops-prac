@@ -1,0 +1,155 @@
+services:
+  blog-db:
+    image: mysql:latest
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.dbnode == true
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: start-first
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - '-h'
+        - localhost
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_password
+    volumes:
+      - blog-db-vol:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    networks:
+      - blog-app-net
+    secrets:
+      - db_password
+  blog-server:
+<<<<<<< HEAD
+<<<<<<< HEAD
+    image: runipanda/blog-app:build-c3539087dbe9fdcc6171a82928be7e4493fa7257
+=======
+    image: runipanda/blog-app:build-4578076e778332e1a267c4c2eb0833c6d9b7681b
+>>>>>>> fd95b2e (✨ shipped: new image build-4578076e778332e1a267c4c2eb0833c6d9b7681b [skip ci])
+=======
+    image: runipanda/blog-app:build-4578076e778332e1a267c4c2eb0833c6d9b7681b
+>>>>>>> fd95b2e830db3000124aae0d239b57a085a9c770
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: start-first
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '--no-verbose'
+        - '--tries=1'
+        - '--spider'
+        - http://localhost:3000/health
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '3001:3000'
+    environment:
+      - DB_HOST=blog-db
+      - DB_USER_FILE=/run/secrets/db_username
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - DB_NAME=blogdb
+      - NODE_HOST="{{.Node.Hostname}}"
+    depends_on:
+      - blog-db
+    networks:
+      - blog-app-net
+    secrets:
+      - db_password
+      - db_username
+  caddy:
+    image: caddy:latest
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: start-first
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - blog-app-net
+    configs:
+      - source: Caddyfile
+        target: /etc/caddy/Caddyfile
+  db-backup:
+    image: fradelg/mysql-cron-backup:latest
+    environment:
+      - MYSQL_HOST=blog-db
+      - MYSQL_USER_FILE=/run/secrets/db_username
+      - MYSQL_PASS_FILE=/run/secrets/db_password
+      - MAX_BACKUPS=5
+      - INIT_BACKUP=1
+      - CRON_TIME=* * * * *
+      - GZIP_LEVEL=9
+      - EXIT_BACKUP=1
+    volumes:
+      - mysql_backup:/backup
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.dbnode == true
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: start-first
+    networks:
+      - blog-app-net
+    secrets:
+      - db_username
+      - db_password
+volumes:
+  blog-db-vol: null
+  caddy_data: null
+  caddy_config: null
+  mysql_backup: null
+networks:
+  blog-app-net: null
+secrets:
+  db_password:
+    external: true
+  db_username:
+    external: true
+configs:
+  Caddyfile:
+<<<<<<< HEAD
+<<<<<<< HEAD
+    file: ./Caddyfile
+=======
+    file: ./Caddyfile
+>>>>>>> fd95b2e (✨ shipped: new image build-4578076e778332e1a267c4c2eb0833c6d9b7681b [skip ci])
+=======
+    file: ./Caddyfile
+>>>>>>> fd95b2e830db3000124aae0d239b57a085a9c770
