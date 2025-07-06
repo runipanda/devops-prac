@@ -34,7 +34,7 @@ services:
     secrets:
       - db_password
   blog-server:
-    image: runipanda/blog-app
+    image: runipanda/blog-app:build-f64ff673c60537d74e66452069acb1728e98b2fd
     deploy:
       replicas: 2
       update_config:
@@ -135,4 +135,3 @@ secrets:
 configs:
   Caddyfile:
     file: ./Caddyfile
-
