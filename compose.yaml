@@ -1,11 +1,11 @@
 services:
   blog-db:
-    image: mysql:latest
+    image: mysql
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.dbnode == true
+          - node.labels.dbwala == true
       update_config:
         order: start-first
         failure_action: rollback
@@ -34,17 +34,9 @@ services:
     secrets:
       - db_password
   blog-server:
-<<<<<<< HEAD
-<<<<<<< HEAD
-    image: runipanda/blog-app:build-c3539087dbe9fdcc6171a82928be7e4493fa7257
-=======
-    image: runipanda/blog-app:build-4578076e778332e1a267c4c2eb0833c6d9b7681b
->>>>>>> fd95b2e (✨ shipped: new image build-4578076e778332e1a267c4c2eb0833c6d9b7681b [skip ci])
-=======
-    image: runipanda/blog-app:build-4578076e778332e1a267c4c2eb0833c6d9b7681b
->>>>>>> fd95b2e830db3000124aae0d239b57a085a9c770
+    image: runipanda/blog-app
     deploy:
-      replicas: 1
+      replicas: 2
       update_config:
         order: start-first
         failure_action: rollback
@@ -60,9 +52,9 @@ services:
         - '--tries=1'
         - '--spider'
         - http://localhost:3000/health
-      interval: 20s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
     ports:
       - '3001:3000'
     environment:
@@ -71,15 +63,13 @@ services:
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - DB_NAME=blogdb
       - NODE_HOST="{{.Node.Hostname}}"
-    depends_on:
-      - blog-db
     networks:
       - blog-app-net
     secrets:
-      - db_password
       - db_username
+      - db_password
   caddy:
-    image: caddy:latest
+    image: caddy:2-alpine
     deploy:
       replicas: 1
       update_config:
@@ -117,7 +107,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.dbnode == true
+          - node.labels.dbwala == true
       update_config:
         order: start-first
         failure_action: rollback
@@ -144,12 +134,5 @@ secrets:
     external: true
 configs:
   Caddyfile:
-<<<<<<< HEAD
-<<<<<<< HEAD
     file: ./Caddyfile
-=======
-    file: ./Caddyfile
->>>>>>> fd95b2e (✨ shipped: new image build-4578076e778332e1a267c4c2eb0833c6d9b7681b [skip ci])
-=======
-    file: ./Caddyfile
->>>>>>> fd95b2e830db3000124aae0d239b57a085a9c770
+
